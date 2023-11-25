@@ -52,3 +52,9 @@ class CommentViewset(ReadOnlyModelViewSet):
         elif issue:
             queryset = queryset.filter(issue=issue)
         return queryset
+
+
+class RegisterView(CreateAPIView):
+    model = get_user_model()
+    permission_classes = [permissions.AllowAny]
+    serializer_class = UserSerializer
