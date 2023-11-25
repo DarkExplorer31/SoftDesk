@@ -91,6 +91,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = "username"
     REQUIRED_FIELDS = ["email", "age"]
 
+    def __str__(self):
+        return self.username
+
 
 # API objects
 class Project(models.Model):
@@ -117,6 +120,9 @@ class Project(models.Model):
         contributors_list.append(self.author)
         return contributors_list
 
+    def __str__(self):
+        return self.application_name
+
 
 class Contributor(models.Model):
     user = models.ForeignKey(
@@ -126,6 +132,9 @@ class Contributor(models.Model):
         to=Project, on_delete=models.CASCADE, related_name="contributors"
     )
     created_time = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.user.username
 
 
 class Issue(models.Model):
@@ -149,14 +158,15 @@ class Issue(models.Model):
         max_length=255,
         choices=STATUS_CHOICES,
     )
-    priority = models.CharField(
-        max_length=255,
-    )
+    priority = models.CharField(max_length=255, choices=PRIORITY_ORDER)
     attribution = models.ForeignKey(
         to=User, on_delete=models.CASCADE, related_name="issues"
     )
     tag = models.CharField(max_length=255, choices=TAG_ATTRIBUTION)
     created_time = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.issue_name
 
 
 class Comment(models.Model):
@@ -169,3 +179,6 @@ class Comment(models.Model):
     description = models.TextField(blank=False)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_time = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.description
