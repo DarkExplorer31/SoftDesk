@@ -6,7 +6,11 @@ from support.models import Project, Issue, Comment
 USER = get_user_model()
 
 
-class ProjectSerializer(serializers.ModelSerializer):
+class ProjectDetailsSerializer(serializers.ModelSerializer):
+    issues = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
+    author_username = serializers.SerializerMethodField()
+
     class Meta:
         model = Project
         fields = [
@@ -15,16 +19,52 @@ class ProjectSerializer(serializers.ModelSerializer):
             "description",
             "type",
             "author",
+            "author_username",
+            "created_time",
+            "issues",
+            "comments",
+        ]
+
+    def get_issues(self, instance):
+        queryset = instance.issues.all()
+        serializer = IssueSerializer(queryset, many=True)
+        return serializer.data
+
+    def get_comments(self, instance):
+        queryset = instance.issues.all()
+        serializer = CommentSerializer(queryset, many=True)
+        return serializer.data
+
+    def get_author_username(self, instance):
+        return instance.author.username
+
+
+class ProjectListSerializer(serializers.ModelSerializer):
+    author_username = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Project
+        fields = [
+            "id",
+            "application_name",
+            "author",
+            "author_username",
             "created_time",
         ]
 
+    def get_author_username(self, instance):
+        return instance.author.username
+
 
 class IssueSerializer(serializers.ModelSerializer):
+    project_application_name = serializers.SerializerMethodField()
+
     class Meta:
         model = Issue
         fields = [
             "id",
             "project",
+            "project_application_name",
             "issue_name",
             "status",
             "description",
@@ -34,11 +74,25 @@ class IssueSerializer(serializers.ModelSerializer):
             "created_time",
         ]
 
+    def get_project_application_name(self, instance):
+        return instance.project.application_name
+
 
 class CommentSerializer(serializers.ModelSerializer):
+    project_application_name = serializers.SerializerMethodField()
+
     class Meta:
         model = Comment
-        fields = ["id", "project", "issue", "description", "created_time"]
+        fields = [
+            "id",
+            "project",
+            "project_application_name",
+            "description",
+            "created_time",
+        ]
+
+    def get_project_application_name(self, instance):
+        return instance.project.application_name
 
 
 class UserSerializer(serializers.ModelSerializer):

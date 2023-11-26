@@ -1,5 +1,5 @@
 # SoftDesk
-![built-with-DRF](/made-with-django-rest-framework.svg)
+![built-with-DRF](/made-with-django-rest-framework.svg)  
 A supporting API destined to help multiple platform developers.
 
 ## Table of Contents

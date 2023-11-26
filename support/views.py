@@ -5,7 +5,8 @@ from django.contrib.auth import get_user_model
 
 from support.models import Project, Issue, Comment
 from support.serializers import (
-    ProjectSerializer,
+    ProjectDetailsSerializer,
+    ProjectListSerializer,
     UserSerializer,
     IssueSerializer,
     CommentSerializer,
@@ -13,17 +14,23 @@ from support.serializers import (
 
 
 class ProjectViewset(ReadOnlyModelViewSet):
-    serializer_class = ProjectSerializer
+    serializer_class = ProjectListSerializer
+    detail_serializer_class = ProjectDetailsSerializer
 
     def get_queryset(self):
         queryset = Project.objects.all()
+        application_name = self.request.GET.get("application_name")
         author = self.request.GET.get("author")
-        type = self.request.GET.get("type")
-        if author:
+        if application_name:
+            queryset = queryset.filter(application_name=application_name)
+        elif author:
             queryset = queryset.filter(author=author)
-        elif type:
-            queryset = queryset.filter(type=type)
         return queryset
+
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return self.detail_serializer_class
+        return super().get_serializer_class()
 
 
 class IssueViewset(ReadOnlyModelViewSet):
