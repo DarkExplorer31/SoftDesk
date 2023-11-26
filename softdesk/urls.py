@@ -23,9 +23,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from support.views import ProjectViewset, RegisterView, IssueViewset, CommentViewset
 
 router = routers.SimpleRouter()
-router.register("projects", ProjectViewset, basename="Projects")
-router.register("issues", IssueViewset, basename="Issues")
-router.register("comments", CommentViewset, basename="Comments")
+router.register("project", ProjectViewset, basename="Project")
+router.register("issue", IssueViewset, basename="Issue")
+router.register("comment", CommentViewset, basename="Comment")
 
 
 urlpatterns = [
