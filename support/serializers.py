@@ -104,20 +104,18 @@ class UserSerializer(serializers.ModelSerializer):
         validators=[
             RegexValidator(
                 regex=USERNAME_TYPE,
-                message="Le nom d'utilisateur ne peut contenir"
+                message="Username must contain only letters and digits."
                 + " que des lettres et des chiffres",
             ),
         ],
-        error_messages={"blank": "Le nom d'utilisateur ne peut pas être vide."},
+        error_messages={"blank": "Username cannot be empty."},
     )
 
     email = serializers.EmailField(
         write_only=True,
-        error_messages={"blank": "L'email ne peut pas être vide."},
+        error_messages={"blank": "Email cannot be empty."},
     )
-    age = serializers.IntegerField(
-        error_messages={"invalid": "L'age ne peut pas être vide."}
-    )
+    age = serializers.IntegerField()
     can_be_contacted = serializers.ChoiceField(["Oui", "Non"])
     can_data_be_shared = serializers.ChoiceField(["Oui", "Non"])
     password = serializers.CharField(
@@ -125,35 +123,33 @@ class UserSerializer(serializers.ModelSerializer):
         validators=[
             RegexValidator(
                 regex=PASSWORD_RE,
-                message="Le mot de passe doit commencer par une majuscule,"
-                + " avoir au moins 8 caractères alphanumériques et se"
-                + " terminer par un chiffre ou un caractère spécial.",
+                message="The password must start with an uppercase letter,"
+                + " have at least 8 alphanumeric characters and"
+                + " end with a digit or a special character.",
             )
         ],
         style={"input_type": "password"},
-        error_messages={"blank": "Le mot de passe ne peut pas être vide."},
+        error_messages={"blank": "Password cannot be empty."},
     )
     password_confirm = serializers.CharField(
         write_only=True,
         style={"input_type": "password"},
-        error_messages={"blank": "Le mot de passe ne peut pas être vide."},
+        error_messages={"blank": "Password cannot be empty."},
     )
 
     def validate(self, data):
         username = data.get("username")
         email = data.get("email")
         if User.objects.filter(username=username).exists():
-            raise serializers.ValidationError("Ce nom d'utilisateur est déjà utilisé.")
+            raise serializers.ValidationError("This username already exists.")
 
         if User.objects.filter(email=email).exists():
-            raise serializers.ValidationError("Cet e-mail est déjà enregistré.")
+            raise serializers.ValidationError("This email already exists.")
         password = data.get("password")
         password_confirm = data.get("password_confirm")
 
         if password != password_confirm:
-            raise serializers.ValidationError(
-                "Les mots de passe entrés ne correspondent pas."
-            )
+            raise serializers.ValidationError("Passwords do not match.")
         return data
 
     def create(self, validated_data):

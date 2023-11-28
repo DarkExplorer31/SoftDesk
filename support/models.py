@@ -22,7 +22,7 @@ class UserManager(BaseUserManager):
         password=None,
     ):
         if not email:
-            raise ValueError("L'adresse e-mail doit être définie.")
+            raise ValueError("Email need to be define.")
         email = self.normalize_email(email)
         if re.match(PASSWORD_RE, password):
             user = self.model(
