@@ -1,9 +1,12 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from django.core.validators import RegexValidator
 
-from support.models import Project, Issue, Comment
+from support.models import Project, Issue, Comment, User
 
 USER = get_user_model()
+PASSWORD_RE = r"^[A-Z]{1}[a-z0-9]{6,}[0-9!@#$%^&*()-_+=<>?]{2}$"
+USERNAME_TYPE = r"^[A-Za-z0-9]{1,}$"
 
 
 class ProjectDetailsSerializer(serializers.ModelSerializer):
@@ -96,15 +99,62 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(write_only=True)
-    email = serializers.EmailField(write_only=True)
-    age = serializers.IntegerField()
+    username = serializers.CharField(
+        write_only=True,
+        validators=[
+            RegexValidator(
+                regex=USERNAME_TYPE,
+                message="Le nom d'utilisateur ne peut contenir"
+                + " que des lettres et des chiffres",
+            ),
+        ],
+        error_messages={"blank": "Le nom d'utilisateur ne peut pas être vide."},
+    )
+
+    email = serializers.EmailField(
+        write_only=True,
+        error_messages={"blank": "L'email ne peut pas être vide."},
+    )
+    age = serializers.IntegerField(
+        error_messages={"invalid": "L'age ne peut pas être vide."}
+    )
     can_be_contacted = serializers.ChoiceField(["Oui", "Non"])
     can_data_be_shared = serializers.ChoiceField(["Oui", "Non"])
-    password = serializers.CharField(write_only=True, style={"input_type": "password"})
-    password_confirm = serializers.CharField(
-        write_only=True, style={"input_type": "password"}
+    password = serializers.CharField(
+        write_only=True,
+        validators=[
+            RegexValidator(
+                regex=PASSWORD_RE,
+                message="Le mot de passe doit commencer par une majuscule,"
+                + " avoir au moins 8 caractères alphanumériques et se"
+                + " terminer par un chiffre ou un caractère spécial.",
+            )
+        ],
+        style={"input_type": "password"},
+        error_messages={"blank": "Le mot de passe ne peut pas être vide."},
     )
+    password_confirm = serializers.CharField(
+        write_only=True,
+        style={"input_type": "password"},
+        error_messages={"blank": "Le mot de passe ne peut pas être vide."},
+    )
+
+    def validate(self, data):
+        username = data.get("username")
+        email = data.get("email")
+        if User.objects.filter(username=username).exists():
+            raise serializers.ValidationError("Ce nom d'utilisateur est déjà utilisé.")
+
+        if User.objects.filter(email=email).exists():
+            raise serializers.ValidationError("Cet e-mail est déjà enregistré.")
+        password = data.get("password")
+        password_confirm = data.get("password_confirm")
+
+        if password != password_confirm:
+            raise serializers.ValidationError(
+                "Les mots de passe entrés ne correspondent pas."
+            )
+        return data
 
     def create(self, validated_data):
         user = USER.objects.create_user(

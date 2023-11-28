@@ -138,6 +138,9 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.AllowAny",
         "rest_framework.permissions.IsAuthenticatedOrReadOnly",
     ),
+    "XML_PARSER": {
+        "resolve_entities": False,
+    },
 }
 SIMPLE_JWT = {
     "USER_ID_FIELD": "uuid",
@@ -148,3 +151,10 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=2),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=10),
 }
+
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_COOKIE_SECURE = True
+# Add this parameter to mitigate potential XXE attacks
+SESSION_COOKIE_HTTPONLY = True
+# Set it to 48 hours for improved security with some conveniences
+SESSION_COOKIE_AGE = 172800

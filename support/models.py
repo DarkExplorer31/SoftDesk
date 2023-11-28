@@ -1,3 +1,4 @@
+import re
 import uuid
 from django.db import models
 from django.contrib.auth.models import (
@@ -5,6 +6,8 @@ from django.contrib.auth.models import (
     PermissionsMixin,
     BaseUserManager,
 )
+
+PASSWORD_RE = r"^[A-Z]{1}[a-z0-9]{6,}[0-9!@#$%^&*()-_+=<>?]{2}$"
 
 
 # Users management
@@ -21,16 +24,17 @@ class UserManager(BaseUserManager):
         if not email:
             raise ValueError("L'adresse e-mail doit être définie.")
         email = self.normalize_email(email)
-        user = self.model(
-            username=username,
-            email=email,
-            age=age,
-            can_data_be_shared=can_data_be_shared,
-            can_be_contacted=can_be_contacted,
-        )
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
+        if re.match(PASSWORD_RE, password):
+            user = self.model(
+                username=username,
+                email=email,
+                age=age,
+                can_data_be_shared=can_data_be_shared,
+                can_be_contacted=can_be_contacted,
+            )
+            user.set_password(password)
+            user.save(using=self._db)
+            return user
 
     def create_superuser(
         self,
@@ -41,19 +45,20 @@ class UserManager(BaseUserManager):
         can_data_be_shared=False,
         password=None,
     ):
-        user = self.create_user(
-            username=username,
-            email=self.normalize_email(email),
-            password=password,
-            age=age,
-            can_data_be_shared=can_data_be_shared,
-            can_be_contacted=can_be_contacted,
-        )
-        user.is_admin = True
-        user.is_staff = True
-        user.is_superuser = True
-        user.save(using=self._db)
-        return user
+        if re.match(PASSWORD_RE, password):
+            user = self.create_user(
+                username=username,
+                email=self.normalize_email(email),
+                password=password,
+                age=age,
+                can_data_be_shared=can_data_be_shared,
+                can_be_contacted=can_be_contacted,
+            )
+            user.is_admin = True
+            user.is_staff = True
+            user.is_superuser = True
+            user.save(using=self._db)
+            return user
 
 
 class User(AbstractBaseUser, PermissionsMixin):
