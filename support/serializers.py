@@ -2,10 +2,10 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 
-from support.models import Project, Issue, Comment, User
+from support.models import Project, Issue, Comment, User, Contributor
 
 USER = get_user_model()
-PASSWORD_RE = r"^[A-Z]{1}[a-z0-9]{6,}[0-9!@#$%^&*()-_+=<>?]{2}$"
+PASSWORD_RE = r"^[A-Za-z0-9]{6,}[0-9!@#$%^&*()-_+=<>?]{,2}$"
 USERNAME_TYPE = r"^[A-Za-z0-9]{1,}$"
 
 
@@ -98,7 +98,7 @@ class CommentSerializer(serializers.ModelSerializer):
         return instance.project.application_name
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserRegistrationSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         write_only=True,
         validators=[
@@ -123,8 +123,8 @@ class UserSerializer(serializers.ModelSerializer):
         validators=[
             RegexValidator(
                 regex=PASSWORD_RE,
-                message="The password must start with an uppercase letter,"
-                + " have at least 8 alphanumeric characters and"
+                message="The password must have least 8"
+                + " alphanumeric characters and"
                 + " end with a digit or a special character.",
             )
         ],
@@ -175,3 +175,22 @@ class UserSerializer(serializers.ModelSerializer):
             "password",
             "password_confirm",
         ]
+
+
+class CreateContributorSerializer(serializers.Serializer):
+    class Meta:
+        model = User
+        fields = ["username"]
+
+    def __init__(self, *args, application_name=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.application_name = application_name
+
+    def validate_username(self, value):
+        if User.objects.filter(
+            username=value, project__name=self.application_name
+        ).exists():
+            raise serializers.ValidationError(
+                "Cet utilisateur est déjà un contributeur pour le projet."
+            )
+        return value

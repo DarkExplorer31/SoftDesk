@@ -1,21 +1,24 @@
 from rest_framework import permissions
-from rest_framework.viewsets import ReadOnlyModelViewSet
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import CreateAPIView
 from django.contrib.auth import get_user_model
 
-from support.models import Project, Issue, Comment
+from support.models import Project, Issue, Comment, Contributor, User
 from support.serializers import (
     ProjectDetailsSerializer,
     ProjectListSerializer,
-    UserSerializer,
+    UserRegistrationSerializer,
     IssueSerializer,
     CommentSerializer,
+    CreateContributorSerializer,
 )
 
 
-class ProjectViewset(ReadOnlyModelViewSet):
+class ProjectViewset(ModelViewSet):
     serializer_class = ProjectListSerializer
     detail_serializer_class = ProjectDetailsSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         queryset = Project.objects.all()
@@ -33,8 +36,9 @@ class ProjectViewset(ReadOnlyModelViewSet):
         return super().get_serializer_class()
 
 
-class IssueViewset(ReadOnlyModelViewSet):
+class IssueViewset(ModelViewSet):
     serializer_class = IssueSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         queryset = Issue.objects.all()
@@ -47,8 +51,9 @@ class IssueViewset(ReadOnlyModelViewSet):
         return queryset
 
 
-class CommentViewset(ReadOnlyModelViewSet):
+class CommentViewset(ModelViewSet):
     serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         queryset = Comment.objects.all()
@@ -64,4 +69,16 @@ class CommentViewset(ReadOnlyModelViewSet):
 class RegisterView(CreateAPIView):
     model = get_user_model()
     permission_classes = [permissions.AllowAny]
-    serializer_class = UserSerializer
+    serializer_class = UserRegistrationSerializer
+
+
+class ContributorManageView(CreateAPIView):
+    model = Contributor
+    queryset = User.objects.all()
+    permission_classes = [permissions.AllowAny]
+    serializer_class = CreateContributorSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["application_name"] = self.kwargs["application_name"]
+        return context

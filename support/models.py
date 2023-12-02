@@ -1,4 +1,3 @@
-import re
 import uuid
 from django.db import models
 from django.contrib.auth.models import (
@@ -6,8 +5,6 @@ from django.contrib.auth.models import (
     PermissionsMixin,
     BaseUserManager,
 )
-
-PASSWORD_RE = r"^[A-Z]{1}[a-z0-9]{6,}[0-9!@#$%^&*()-_+=<>?]{2}$"
 
 
 # Users management
@@ -24,17 +21,16 @@ class UserManager(BaseUserManager):
         if not email:
             raise ValueError("Email need to be define.")
         email = self.normalize_email(email)
-        if re.match(PASSWORD_RE, password):
-            user = self.model(
-                username=username,
-                email=email,
-                age=age,
-                can_data_be_shared=can_data_be_shared,
-                can_be_contacted=can_be_contacted,
-            )
-            user.set_password(password)
-            user.save(using=self._db)
-            return user
+        user = self.model(
+            username=username,
+            email=email,
+            age=age,
+            can_data_be_shared=can_data_be_shared,
+            can_be_contacted=can_be_contacted,
+        )
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
 
     def create_superuser(
         self,
@@ -45,20 +41,19 @@ class UserManager(BaseUserManager):
         can_data_be_shared=False,
         password=None,
     ):
-        if re.match(PASSWORD_RE, password):
-            user = self.create_user(
-                username=username,
-                email=self.normalize_email(email),
-                password=password,
-                age=age,
-                can_data_be_shared=can_data_be_shared,
-                can_be_contacted=can_be_contacted,
-            )
-            user.is_admin = True
-            user.is_staff = True
-            user.is_superuser = True
-            user.save(using=self._db)
-            return user
+        user = self.create_user(
+            username=username,
+            email=self.normalize_email(email),
+            password=password,
+            age=age,
+            can_data_be_shared=can_data_be_shared,
+            can_be_contacted=can_be_contacted,
+        )
+        user.is_admin = True
+        user.is_staff = True
+        user.is_superuser = True
+        user.save(using=self._db)
+        return user
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -109,7 +104,7 @@ class Project(models.Model):
         ("Android", "Android"),
     ]
     author = models.ForeignKey(
-        to=User, on_delete=models.CASCADE, related_name="projects"
+        to=User, on_delete=models.CASCADE, related_name="project_author"
     )
     type = models.CharField(
         max_length=100,
@@ -167,6 +162,9 @@ class Issue(models.Model):
     attribution = models.ForeignKey(
         to=User, on_delete=models.CASCADE, related_name="issues"
     )
+    author = models.ForeignKey(
+        to=User, on_delete=models.CASCADE, related_name="issue_author"
+    )
     tag = models.CharField(max_length=255, choices=TAG_ATTRIBUTION)
     created_time = models.DateTimeField(auto_now_add=True)
 
@@ -183,6 +181,9 @@ class Comment(models.Model):
     )
     description = models.TextField(blank=False)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    author = models.ForeignKey(
+        to=User, on_delete=models.CASCADE, related_name="comment_author"
+    )
     created_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
