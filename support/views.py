@@ -13,12 +13,13 @@ from support.serializers import (
     CommentSerializer,
     CreateContributorSerializer,
 )
+from support.permissions import IsContributorAuthenticated, IsAuthorAuthenticated
 
 
 class ProjectViewset(ModelViewSet):
     serializer_class = ProjectListSerializer
     detail_serializer_class = ProjectDetailsSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsContributorAuthenticated, IsAuthenticated]
 
     def get_queryset(self):
         queryset = Project.objects.all()
@@ -35,10 +36,13 @@ class ProjectViewset(ModelViewSet):
             return self.detail_serializer_class
         return super().get_serializer_class()
 
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
 
 class IssueViewset(ModelViewSet):
     serializer_class = IssueSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsContributorAuthenticated, IsAuthenticated]
 
     def get_queryset(self):
         queryset = Issue.objects.all()
@@ -53,7 +57,7 @@ class IssueViewset(ModelViewSet):
 
 class CommentViewset(ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsContributorAuthenticated, IsAuthenticated]
 
     def get_queryset(self):
         queryset = Comment.objects.all()
@@ -75,7 +79,7 @@ class RegisterView(CreateAPIView):
 class ContributorManageView(CreateAPIView):
     model = Contributor
     queryset = User.objects.all()
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAuthorAuthenticated, IsAuthenticated]
     serializer_class = CreateContributorSerializer
 
     def get_serializer_context(self):
