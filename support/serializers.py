@@ -7,12 +7,57 @@ from support.models import Project, Issue, Comment, User, Contributor
 USER = get_user_model()
 PASSWORD_RE = r"^[A-Za-z0-9]{6,}[0-9!@#$%^&*()-_+=<>?]{,2}$"
 USERNAME_TYPE = r"^[A-Za-z0-9]{1,}$"
+APPLICATION_TYPE = r"^[A-Za-z]{1,}$"
 
 
-class ProjectDetailsSerializer(serializers.ModelSerializer):
+class ProjectSerializer(serializers.ModelSerializer):
     issues = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
     author_username = serializers.SerializerMethodField()
+
+    type = serializers.ChoiceField(
+        [
+            ("back-end", "back-end"),
+            ("front-end", "front-end"),
+            ("iOS", "iOS"),
+            ("Android", "Android"),
+        ],
+        error_messages={"blank": "Type cannot be empty."},
+    )
+    application_name = serializers.CharField(
+        write_only=True,
+        validators=[
+            RegexValidator(
+                regex=APPLICATION_TYPE,
+                message="Application name must contain only letters.",
+            ),
+        ],
+        error_messages={"blank": "Application name cannot be empty."},
+    )
+    description = serializers.CharField(
+        error_messages={"blank": "Description cannot be empty."}
+    )
+
+    def validate(self, data):
+        application_name = data.get("application_name")
+        description = data.get("description")
+        if Project.objects.filter(application_name=application_name).exists():
+            raise serializers.ValidationError("This application name already exists.")
+
+        if Project.objects.filter(description=description).exists():
+            raise serializers.ValidationError("This description already exists.")
+        return data
+
+    def create(self, validated_data):
+        validated_data["author"] = self.context["request"].user
+        project = Project.objects.create(
+            application_name=validated_data["application_name"],
+            description=validated_data["description"],
+            type=validated_data["type"],
+            author=validated_data["author"],
+        )
+        Contributor.objects.create(user=self.context["request"].user, project=project)
+        return project
 
     class Meta:
         model = Project
@@ -21,9 +66,9 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
             "application_name",
             "description",
             "type",
-            "author",
             "author_username",
             "created_time",
+            "contributors",
             "issues",
             "comments",
         ]
@@ -37,23 +82,6 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
         queryset = instance.issues.all()
         serializer = CommentSerializer(queryset, many=True)
         return serializer.data
-
-    def get_author_username(self, instance):
-        return instance.author.username
-
-
-class ProjectListSerializer(serializers.ModelSerializer):
-    author_username = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Project
-        fields = [
-            "id",
-            "application_name",
-            "author",
-            "author_username",
-            "created_time",
-        ]
 
     def get_author_username(self, instance):
         return instance.author.username

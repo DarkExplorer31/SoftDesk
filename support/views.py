@@ -6,8 +6,7 @@ from django.contrib.auth import get_user_model
 
 from support.models import Project, Issue, Comment, Contributor, User
 from support.serializers import (
-    ProjectDetailsSerializer,
-    ProjectListSerializer,
+    ProjectSerializer,
     UserRegistrationSerializer,
     IssueSerializer,
     CommentSerializer,
@@ -17,27 +16,15 @@ from support.permissions import IsContributorAuthenticated, IsAuthorAuthenticate
 
 
 class ProjectViewset(ModelViewSet):
-    serializer_class = ProjectListSerializer
-    detail_serializer_class = ProjectDetailsSerializer
+    serializer_class = ProjectSerializer
     permission_classes = [IsContributorAuthenticated, IsAuthenticated]
 
     def get_queryset(self):
-        queryset = Project.objects.all()
+        queryset = Project.objects.filter(contributors__user=self.request.user)
         application_name = self.request.GET.get("application_name")
-        author = self.request.GET.get("author")
         if application_name:
             queryset = queryset.filter(application_name=application_name)
-        elif author:
-            queryset = queryset.filter(author=author)
         return queryset
-
-    def get_serializer_class(self):
-        if self.action == "retrieve":
-            return self.detail_serializer_class
-        return super().get_serializer_class()
-
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
 
 
 class IssueViewset(ModelViewSet):

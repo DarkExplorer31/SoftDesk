@@ -80,6 +80,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         default="no",
     )
     created_time = models.DateTimeField(auto_now_add=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -182,7 +183,7 @@ class Comment(models.Model):
     description = models.TextField(blank=False)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author = models.ForeignKey(
-        to=User, on_delete=models.CASCADE, related_name="comment_author"
+        to=User, on_delete=models.CASCADE, null=True, related_name="comment_author"
     )
     created_time = models.DateTimeField(auto_now_add=True)
 
