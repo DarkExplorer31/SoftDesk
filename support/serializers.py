@@ -10,10 +10,22 @@ USERNAME_TYPE = r"^[A-Za-z0-9]{1,}$"
 APPLICATION_TYPE = r"^[A-Za-z]{1,}$"
 
 
+class ContributorSerializer(serializers.ModelSerializer):
+    username = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Contributor
+        fields = ["username"]
+
+    def get_username(self, instance):
+        return instance.user.username
+
+
 class ProjectSerializer(serializers.ModelSerializer):
     issues = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
     author_username = serializers.SerializerMethodField()
+    contributors = ContributorSerializer(many=True, read_only=True)
 
     type = serializers.ChoiceField(
         [
@@ -25,7 +37,6 @@ class ProjectSerializer(serializers.ModelSerializer):
         error_messages={"blank": "Type cannot be empty."},
     )
     application_name = serializers.CharField(
-        write_only=True,
         validators=[
             RegexValidator(
                 regex=APPLICATION_TYPE,
@@ -205,20 +216,33 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         ]
 
 
-class CreateContributorSerializer(serializers.Serializer):
-    class Meta:
-        model = User
-        fields = ["username"]
+class ContributorManagementSerializer(serializers.ModelSerializer):
+    username = serializers.ReadOnlyField(source="user.username")
+    application_name = serializers.ReadOnlyField(source="project.application_name")
 
-    def __init__(self, *args, application_name=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.application_name = application_name
-
-    def validate_username(self, value):
-        if User.objects.filter(
-            username=value, project__name=self.application_name
-        ).exists():
+    def validate(self, data):
+        user = data["user"]
+        project = data["project"]
+        existing_contributor = Contributor.objects.filter(user=user, project=project)
+        if existing_contributor:
             raise serializers.ValidationError(
-                "Cet utilisateur est déjà un contributeur pour le projet."
+                "Contributor already exists for this user and project."
             )
-        return value
+        return data
+
+    def create(self, validated_data):
+        contributor = Contributor.objects.create(
+            user=validated_data["user"], project=validated_data["project"]
+        )
+        return contributor
+
+    class Meta:
+        model = Contributor
+        fields = [
+            "id",
+            "user",
+            "username",
+            "project",
+            "application_name",
+            "created_time",
+        ]

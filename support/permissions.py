@@ -4,10 +4,8 @@ from support.models import Project
 
 class IsContributorAuthenticated(BasePermission):
     def has_object_permission(self, request, view, obj):
-        # verifiying if user is Authenticated
         if not request.user or not request.auth:
             return False
-        # verifiying if user is a Contributor
         if isinstance(obj, Project):
             return obj.contributors.filter(user=request.user).exists()
         return False

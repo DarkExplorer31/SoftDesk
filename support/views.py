@@ -4,13 +4,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import CreateAPIView
 from django.contrib.auth import get_user_model
 
-from support.models import Project, Issue, Comment, Contributor, User
+from support.models import Project, Issue, Comment, Contributor
 from support.serializers import (
     ProjectSerializer,
     UserRegistrationSerializer,
     IssueSerializer,
     CommentSerializer,
-    CreateContributorSerializer,
+    ContributorManagementSerializer,
 )
 from support.permissions import IsContributorAuthenticated, IsAuthorAuthenticated
 
@@ -33,11 +33,8 @@ class IssueViewset(ModelViewSet):
 
     def get_queryset(self):
         queryset = Issue.objects.all()
-        project = self.request.GET.get("project")
         priority = self.request.GET.get("priority")
-        if project:
-            queryset = queryset.filter(project=project)
-        elif priority:
+        if priority:
             queryset = queryset.filter(priority=priority)
         return queryset
 
@@ -48,11 +45,8 @@ class CommentViewset(ModelViewSet):
 
     def get_queryset(self):
         queryset = Comment.objects.all()
-        project = self.request.GET.get("project")
         issue = self.request.GET.get("issue")
-        if project:
-            queryset = queryset.filter(project=project)
-        elif issue:
+        if issue:
             queryset = queryset.filter(issue=issue)
         return queryset
 
@@ -63,13 +57,12 @@ class RegisterView(CreateAPIView):
     serializer_class = UserRegistrationSerializer
 
 
-class ContributorManageView(CreateAPIView):
-    model = Contributor
-    queryset = User.objects.all()
+class ContributorViewset(ModelViewSet):
     permission_classes = [IsAuthorAuthenticated, IsAuthenticated]
-    serializer_class = CreateContributorSerializer
+    serializer_class = ContributorManagementSerializer
+    queryset = Contributor.objects.all()
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context["application_name"] = self.kwargs["application_name"]
-        return context
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Contributor.objects.filter(user=user)
+        return queryset
