@@ -1,16 +1,18 @@
 from rest_framework import permissions
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import CreateAPIView
+from rest_framework.exceptions import MethodNotAllowed
 from django.contrib.auth import get_user_model
 
-from support.models import Project, Issue, Comment, Contributor
+from support.models import Project, Issue, Comment, Contributor, User
 from support.serializers import (
     ProjectSerializer,
     UserRegistrationSerializer,
     IssueSerializer,
     CommentSerializer,
     ContributorManagementSerializer,
+    UserSerializer,
 )
 from support.permissions import IsContributorAuthenticated, IsAuthorAuthenticated
 
@@ -66,3 +68,27 @@ class ContributorViewset(ModelViewSet):
         user = self.request.user
         queryset = Contributor.objects.filter(user=user)
         return queryset
+
+
+class UserViewset(ReadOnlyModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def destroy(self, request, *args, **kwargs):
+        if request.user.id == int(kwargs["pk"]):
+            return super().update(request, *args, **kwargs)
+        else:
+            raise MethodNotAllowed("DELETE")
+
+    def update(self, request, *args, **kwargs):
+        if request.user.id == int(kwargs["pk"]):
+            return super().update(request, *args, **kwargs)
+        else:
+            raise MethodNotAllowed("PUT")
+
+    def partial_update(self, request, *args, **kwargs):
+        if request.user.id == int(kwargs["pk"]):
+            return super().partial_update(request, *args, **kwargs)
+        else:
+            raise MethodNotAllowed("PATCH")

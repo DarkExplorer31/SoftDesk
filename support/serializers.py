@@ -15,7 +15,10 @@ class ContributorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Contributor
-        fields = ["username"]
+        fields = ["id", "username"]
+
+    def get_id(self, instance):
+        return instance.user.id
 
     def get_username(self, instance):
         return instance.user.username
@@ -219,6 +222,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class ContributorManagementSerializer(serializers.ModelSerializer):
     username = serializers.ReadOnlyField(source="user.username")
     application_name = serializers.ReadOnlyField(source="project.application_name")
+    contributors = ContributorSerializer(many=True, read_only=True)
 
     def validate(self, data):
         user = data["user"]
@@ -243,6 +247,20 @@ class ContributorManagementSerializer(serializers.ModelSerializer):
             "user",
             "username",
             "project",
+            "contributors",
             "application_name",
             "created_time",
+        ]
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "username",
+            "email",
+            "age",
+            "can_be_contacted",
+            "can_data_be_shared",
         ]

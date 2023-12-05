@@ -26,6 +26,7 @@ from support.views import (
     IssueViewset,
     CommentViewset,
     ContributorViewset,
+    UserViewset,
 )
 
 
@@ -34,6 +35,7 @@ router.register("project", ProjectViewset, basename="Project")
 router.register("issue", IssueViewset, basename="Issue")
 router.register("comment", CommentViewset, basename="Comment")
 router.register("contributor", ContributorViewset, basename="Contributor")
+router.register("user", UserViewset, basename="User")
 
 
 urlpatterns = [
