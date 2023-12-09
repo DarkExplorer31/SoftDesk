@@ -40,6 +40,27 @@ class IssueViewset(ModelViewSet):
             queryset = queryset.filter(priority=priority)
         return queryset
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if request.user.id == instance.author.id:
+            return super().destroy(request, *args, **kwargs)
+        else:
+            raise MethodNotAllowed("DELETE")
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if request.user.id == instance.author.id:
+            return super().update(request, *args, **kwargs)
+        else:
+            raise MethodNotAllowed("PUT")
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if request.user.id == instance.author.id:
+            return super().partial_update(request, *args, **kwargs)
+        else:
+            raise MethodNotAllowed("PATCH")
+
 
 class CommentViewset(ModelViewSet):
     serializer_class = CommentSerializer

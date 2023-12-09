@@ -7,7 +7,7 @@ from support.models import Project, Issue, Comment, User, Contributor
 USER = get_user_model()
 PASSWORD_RE = r"^[A-Za-z0-9]{6,}[0-9!@#$%^&*()-_+=<>?]{,2}$"
 USERNAME_TYPE = r"^[A-Za-z0-9]{1,}$"
-APPLICATION_TYPE = r"^[A-Za-z]{1,}$"
+APPLICATION_TYPE = r"^[A-Za-z0-9]{1,}$"
 
 
 class ContributorSerializer(serializers.ModelSerializer):
@@ -30,46 +30,23 @@ class ProjectSerializer(serializers.ModelSerializer):
     author_username = serializers.SerializerMethodField()
     contributors = ContributorSerializer(many=True, read_only=True)
 
-    type = serializers.ChoiceField(
-        [
-            ("back-end", "back-end"),
-            ("front-end", "front-end"),
-            ("iOS", "iOS"),
-            ("Android", "Android"),
-        ],
-        error_messages={"blank": "Type cannot be empty."},
-    )
     application_name = serializers.CharField(
         validators=[
             RegexValidator(
                 regex=APPLICATION_TYPE,
-                message="Application name must contain only letters.",
+                message="Application name must contain only letters or numbers.",
             ),
         ],
-        error_messages={"blank": "Application name cannot be empty."},
-    )
-    description = serializers.CharField(
-        error_messages={"blank": "Description cannot be empty."}
     )
 
-    def validate(self, data):
-        application_name = data.get("application_name")
-        description = data.get("description")
-        if Project.objects.filter(application_name=application_name).exists():
+    def validate_application_name(self, value):
+        if Project.objects.filter(application_name=value).exists():
             raise serializers.ValidationError("This application name already exists.")
-
-        if Project.objects.filter(description=description).exists():
-            raise serializers.ValidationError("This description already exists.")
-        return data
+        return value
 
     def create(self, validated_data):
         validated_data["author"] = self.context["request"].user
-        project = Project.objects.create(
-            application_name=validated_data["application_name"],
-            description=validated_data["description"],
-            type=validated_data["type"],
-            author=validated_data["author"],
-        )
+        project = super(ProjectSerializer, self).create(validated_data)
         Contributor.objects.create(user=self.context["request"].user, project=project)
         return project
 
@@ -104,11 +81,20 @@ class ProjectSerializer(serializers.ModelSerializer):
 class IssueSerializer(serializers.ModelSerializer):
     project_application_name = serializers.SerializerMethodField()
 
+    def validate_project_application_name(self, value):
+        if not Project.objects.filter(application_name=value).exists():
+            raise serializers.ValidationError("This application name not exists.")
+        return value
+
+    def create(self, validated_data):
+        validated_data["author"] = self.context["request"].user
+        issue = super(IssueSerializer, self).create(validated_data)
+        return issue
+
     class Meta:
         model = Issue
         fields = [
             "id",
-            "project",
             "project_application_name",
             "issue_name",
             "status",
@@ -125,6 +111,16 @@ class IssueSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     project_application_name = serializers.SerializerMethodField()
+
+    def validate_project_application_name(self, value):
+        if not Project.objects.filter(application_name=value).exists():
+            raise serializers.ValidationError("This application name not exists.")
+        return value
+
+    def create(self, validated_data):
+        validated_data["author"] = self.context["request"].user
+        issue = super(IssueSerializer, self).create(validated_data)
+        return issue
 
     class Meta:
         model = Comment
@@ -150,16 +146,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
                 + " que des lettres et des chiffres",
             ),
         ],
-        error_messages={"blank": "Username cannot be empty."},
     )
-
-    email = serializers.EmailField(
-        write_only=True,
-        error_messages={"blank": "Email cannot be empty."},
-    )
-    age = serializers.IntegerField()
-    can_be_contacted = serializers.ChoiceField(["Oui", "Non"])
-    can_data_be_shared = serializers.ChoiceField(["Oui", "Non"])
     password = serializers.CharField(
         write_only=True,
         validators=[
@@ -171,22 +158,19 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             )
         ],
         style={"input_type": "password"},
-        error_messages={"blank": "Password cannot be empty."},
     )
-    password_confirm = serializers.CharField(
-        write_only=True,
-        style={"input_type": "password"},
-        error_messages={"blank": "Password cannot be empty."},
-    )
+
+    def validate_username(self, value):
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("This username already exists.")
+        return value
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("This email already exists.")
+        return value
 
     def validate(self, data):
-        username = data.get("username")
-        email = data.get("email")
-        if User.objects.filter(username=username).exists():
-            raise serializers.ValidationError("This username already exists.")
-
-        if User.objects.filter(email=email).exists():
-            raise serializers.ValidationError("This email already exists.")
         password = data.get("password")
         password_confirm = data.get("password_confirm")
 
@@ -195,14 +179,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        user = USER.objects.create_user(
-            username=validated_data["username"],
-            email=validated_data["email"],
-            age=validated_data["age"],
-            can_be_contacted=validated_data["can_be_contacted"],
-            can_data_be_shared=validated_data["can_data_be_shared"],
-            password=validated_data["password"],
-        )
+        user = super(UserRegistrationSerializer, self).create(validated_data)
         return user
 
     class Meta:
@@ -235,8 +212,8 @@ class ContributorManagementSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        contributor = Contributor.objects.create(
-            user=validated_data["user"], project=validated_data["project"]
+        contributor = super(ContributorManagementSerializer, self).create(
+            validated_data
         )
         return contributor
 

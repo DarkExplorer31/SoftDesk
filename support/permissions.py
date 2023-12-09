@@ -18,3 +18,7 @@ class IsAuthorAuthenticated(BasePermission):
         if isinstance(obj, Project):
             return obj.author == request.user
         return False
+
+
+class IsUserAuthenticated(BasePermission):
+    pass
