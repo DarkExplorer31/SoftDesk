@@ -79,11 +79,23 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 
 class IssueSerializer(serializers.ModelSerializer):
-    project_application_name = serializers.SerializerMethodField()
-
-    def validate_project_application_name(self, value):
-        if not Project.objects.filter(application_name=value).exists():
+    def validate_project(self, value):
+        if not Project.objects.filter(id=value).exists():
             raise serializers.ValidationError("This application name not exists.")
+        if not Contributor.objects.filter(
+            user=self.context["request"].user, project=value
+        ).exists():
+            raise serializers.ValidationError(
+                "You are not a contributor of this project."
+            )
+        return value
+
+    def validate_attribution(self, value):
+        project = self.validated_data.get("project")
+        if not Contributor.objects.filter(user=value, project=project).exists():
+            raise serializers.ValidationError(
+                "This user is not a contributor of project."
+            )
         return value
 
     def create(self, validated_data):
@@ -95,7 +107,7 @@ class IssueSerializer(serializers.ModelSerializer):
         model = Issue
         fields = [
             "id",
-            "project_application_name",
+            "project",
             "issue_name",
             "status",
             "description",
@@ -105,16 +117,17 @@ class IssueSerializer(serializers.ModelSerializer):
             "created_time",
         ]
 
-    def get_project_application_name(self, instance):
-        return instance.project.application_name
-
 
 class CommentSerializer(serializers.ModelSerializer):
-    project_application_name = serializers.SerializerMethodField()
-
-    def validate_project_application_name(self, value):
-        if not Project.objects.filter(application_name=value).exists():
+    def validate_project(self, value):
+        if not Project.objects.filter(id=value).exists():
             raise serializers.ValidationError("This application name not exists.")
+        if not Contributor.objects.filter(
+            user=self.context["request"].user, project=value
+        ).exists():
+            raise serializers.ValidationError(
+                "You are not a contributor of this project."
+            )
         return value
 
     def create(self, validated_data):
@@ -127,13 +140,9 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "project",
-            "project_application_name",
             "description",
             "created_time",
         ]
-
-    def get_project_application_name(self, instance):
-        return instance.project.application_name
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -148,6 +157,19 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         ],
     )
     password = serializers.CharField(
+        write_only=True,
+        validators=[
+            RegexValidator(
+                regex=PASSWORD_RE,
+                message="The password must have least 8"
+                + " alphanumeric characters and"
+                + " end with a digit or a special character.",
+            )
+        ],
+        style={"input_type": "password"},
+    )
+
+    password_confirm = serializers.CharField(
         write_only=True,
         validators=[
             RegexValidator(

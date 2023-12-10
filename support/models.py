@@ -134,6 +134,9 @@ class Contributor(models.Model):
     )
     created_time = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        unique_together = ["user", "project"]
+
     def __str__(self):
         return self.user.username
 

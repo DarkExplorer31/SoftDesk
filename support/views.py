@@ -14,12 +14,12 @@ from support.serializers import (
     ContributorManagementSerializer,
     UserSerializer,
 )
-from support.permissions import IsContributorAuthenticated, IsAuthorAuthenticated
+from support.permissions import IsContributor, IsAuthor, IsUser
 
 
 class ProjectViewset(ModelViewSet):
     serializer_class = ProjectSerializer
-    permission_classes = [IsContributorAuthenticated, IsAuthenticated]
+    permission_classes = [IsContributor, IsAuthenticated]
 
     def get_queryset(self):
         queryset = Project.objects.filter(contributors__user=self.request.user)
@@ -31,7 +31,7 @@ class ProjectViewset(ModelViewSet):
 
 class IssueViewset(ModelViewSet):
     serializer_class = IssueSerializer
-    permission_classes = [IsContributorAuthenticated, IsAuthenticated]
+    permission_classes = [IsContributor, IsAuthenticated]
 
     def get_queryset(self):
         queryset = Issue.objects.all()
@@ -64,7 +64,7 @@ class IssueViewset(ModelViewSet):
 
 class CommentViewset(ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [IsContributorAuthenticated, IsAuthenticated]
+    permission_classes = [IsContributor, IsAuthenticated]
 
     def get_queryset(self):
         queryset = Comment.objects.all()
@@ -81,7 +81,7 @@ class RegisterView(CreateAPIView):
 
 
 class ContributorViewset(ModelViewSet):
-    permission_classes = [IsAuthorAuthenticated, IsAuthenticated]
+    permission_classes = [IsAuthor, IsAuthenticated]
     serializer_class = ContributorManagementSerializer
     queryset = Contributor.objects.all()
 
@@ -94,22 +94,4 @@ class ContributorViewset(ModelViewSet):
 class UserViewset(ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
-
-    def destroy(self, request, *args, **kwargs):
-        if request.user.id == int(kwargs["pk"]):
-            return super().update(request, *args, **kwargs)
-        else:
-            raise MethodNotAllowed("DELETE")
-
-    def update(self, request, *args, **kwargs):
-        if request.user.id == int(kwargs["pk"]):
-            return super().update(request, *args, **kwargs)
-        else:
-            raise MethodNotAllowed("PUT")
-
-    def partial_update(self, request, *args, **kwargs):
-        if request.user.id == int(kwargs["pk"]):
-            return super().partial_update(request, *args, **kwargs)
-        else:
-            raise MethodNotAllowed("PATCH")
+    permission_classes = [IsAuthenticated, IsUser]
