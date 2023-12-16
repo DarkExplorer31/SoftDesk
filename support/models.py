@@ -116,7 +116,7 @@ class Project(models.Model):
     created_time = models.DateTimeField(auto_now_add=True)
 
     def get_contributors(self):
-        contributors = Contributor.objects.filter(project=self.application_name)
+        contributors = Contributor.objects.filter(project=self)
         contributors_list = list(contributors)
         contributors_list.append(self.author)
         return contributors_list

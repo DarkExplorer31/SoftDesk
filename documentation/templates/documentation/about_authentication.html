@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>Authentication</h1>
+    <ul>
+        <li>
+            <a href="#registration">Registration</a>
+        </li>
+        <li>
+            <a href="#basic-exemple">Basic exemple</a>
+        </li>
+        <li>
+            <a href="#postman-exemple">Postman exemple</a>
+        </li>
+        <li>
+            <a href="#generate-token">Generate Token</a>
+        </li>
+        <li>
+            <a href="#refresh-token">Refresh Token</a>
+        </li>
+    </ul>
+    <section id="registration">
+        <h2>Registration</h2>
+        <p>
+            To register, use the following endpoint called "register" at the following link: <a href="http://127.0.0.1:8000/api/register/">http://127.0.0.1:8000/api/register/</a>.
+            <br>
+        </p>
+        <h2>Request Parameters [POST]</h2>
+        <p>
+            - <code>username</code>: User's desired username.
+        </p>
+        <p>
+            - <code>email</code>: User's email address.
+        </p>
+        <p>
+            - <code>age</code>: User's age.
+        </p>
+        <p>
+            - <code>can_be_contacted</code>: Choice between "Yes" or "No" (default is "No").
+        </p>
+        <p>
+            - <code>can_data_be_shared</code>: Choice between "Yes" or "No" (default is "No").
+        </p>
+        <p>
+            - <code>password</code>: User's password.
+        </p>
+        <p>
+            - <code>password_confirm</code>: Confirmation of the user's password.
+        </p>
+    </section>
+    <section>
+        <h2>Request Body</h2>
+        <p>All of the above information needs to be included in the form-data within the body of the request.</p>
+    </section>
+    <section id="basic-exemple">
+        <h2>Basic example:</h2>
+        <p>
+            POST /api/register/ HTTP/1.1
+            <br>
+            Host: 127.0.0.1:8000
+            <br>
+            Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+        </p>
+        <pre>
+            ----WebKitFormBoundary7MA4YWxkTrZu0gW
+            Content-Disposition: form-data; name="username"
+
+            john_doe
+            ----WebKitFormBoundary7MA4YWxkTrZu0gW
+            Content-Disposition: form-data; name="email"
+
+            john.doe@example.com
+            ----WebKitFormBoundary7MA4YWxkTrZu0gW
+            Content-Disposition: form-data; name="age"
+
+            25
+            ----WebKitFormBoundary7MA4YWxkTrZu0gW
+            Content-Disposition: form-data; name="can_be_contacted"
+
+            Yes
+            ----WebKitFormBoundary7MA4YWxkTrZu0gW
+            Content-Disposition: form-data; name="can_data_be_shared"
+
+            No
+            ----WebKitFormBoundary7MA4YWxkTrZu0gW
+            Content-Disposition: form-data; name="password"
+
+            secretpassword
+            ----WebKitFormBoundary7MA4YWxkTrZu0gW
+            Content-Disposition: form-data; name="password_confirm"
+
+            secretpassword
+            ----WebKitFormBoundary7MA4YWxkTrZu0gW--
+        </pre>
+    </section>
+    <section id="postman-exemple">
+        <h2>Postman example:</h2>
+        <p>Open Postman and create a new request.</p>
+        <ol>
+            <li>Set the request type to POST.</li>
+            <li>Enter the URL: http://127.0.0.1:8000/api/register/.</li>
+            <li>In the request headers, set Content-Type to multipart/form-data.</li>
+            <li>Switch to the "Body" tab.</li>
+            <li>Choose "form-data" as the type of the body.</li>
+            <li>Add each key-value pair as mentioned earlier:</li>
+        </ol>
+        <table>
+            <thead>
+                <tr>
+                    <th>Key</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <code>username</code>
+                    </td>
+                    <td>your_username</td>
+                </tr>
+            </tbody>
+        </table>
+        <p>Click on the "Send" button to make the request.</p>
+        <h3>Response 200 (application/json)</h3>
+        <pre>
+            [
+                {
+                    "id": 1,
+                    "age": 25,
+                    "can_be_contacted": "Oui",
+                    "can_data_be_shared": "Oui"
+                }
+            ]
+        </pre>
+        <h3>Response 400 (application/json)</h3>
+        <pre>
+            [
+                {
+                    "username": [
+                        "Username cannot be empty."
+                    ],
+                    "email": [
+                        "Email cannot be empty."
+                    ],
+                    "age": [
+                        "A valid integer is required."
+                    ],
+                    "can_be_contacted": [
+                        "\"\" is not a valid choice."
+                    ],
+                    "can_data_be_shared": [
+                        "\"\" is not a valid choice."
+                    ],
+                    "password": [
+                        "Password cannot be empty."
+                    ],
+                    "password_confirm": [
+                        "Password cannot be empty."
+                    ]
+                }
+            ]
+        </pre>
+    </section>
+    <section id="generate-token">
+        <h2>Generate Token</h2>
+        <h3>Explanation</h3>
+        <p>
+            After registration, you can generate both an Access and Refresh token. These tokens are essential for accessing the rest of the API and authenticating your future requests. The refresh token provides the ability to refresh the access token when needed.
+        </p>
+        <h3>Rules</h3>
+        <ul>
+            <li>
+                <strong>Access Token:</strong> Available for two days.
+            </li>
+            <li>
+                <strong>Refresh Token:</strong> Available for ten days.
+            </li>
+        </ul>
+        <h3>Token Generation</h3>
+        <p>To generate tokens, use the following endpoint:</p>
+        <ul>
+            <li>
+                <strong>Endpoint:</strong> <code>http://127.0.0.1:8000/api/token/</code>
+            </li>
+            <li>
+                <strong>Method:</strong> <code>POST</code>
+            </li>
+        </ul>
+        <h4>Request Parameters [POST]</h4>
+        <ul>
+            <li>
+                <code>username</code>: Your username.
+            </li>
+            <li>
+                <code>password</code>: Your password.
+            </li>
+        </ul>
+        <h4>Request Body</h4>
+        <p>Include the following information in the form-data within the body of the request:</p>
+        <pre>
+    POST /api/token/ HTTP/1.1
+    Host: 127.0.0.1:8000
+    Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+    
+    ----WebKitFormBoundary7MA4YWxkTrZu0gW
+    Content-Disposition: form-data; name="username"
+    
+    your_username
+    ----WebKitFormBoundary7MA4YWxkTrZu0gW
+    Content-Disposition: form-data; name="password"
+    
+    your_password
+    ----WebKitFormBoundary7MA4YWxkTrZu0gW
+    Content-Disposition: form-data; name="grant_type"
+    
+    password
+    ----WebKitFormBoundary7MA4YWxkTrZu0gW--
+</pre>
+        <h4>Request Response</h4>
+        <p>Response 200 (application/json)</p>
+        <pre>
+    [
+        {
+            "refresh": "eyJhbGci....",
+            "access": "eyJhbGc...." 
+        }
+    ]
+        </pre>
+    </section>
+    <section id="refresh-token">
+        <h2>Refresh Token</h2>
+        <h3>Refresh Token Generation</h3>
+        <p>
+            After obtaining the Refresh token during the initial token generation, you can use it to refresh the Access token.
+        </p>
+        <h4>Request Body [POST]</h4>
+        <ul>
+            <li>
+                <code>refresh</code>: The Refresh token obtained during the initial token generation.
+            </li>
+        </ul>
+        <h4>Basic example:</h4>
+        <pre>
+    POST /refresh-token/ HTTP/1.1
+    Host: your-api-host
+    Content-Type: application/json
+    
+    {
+        "refresh": "your_refresh_token_here"
+    }
+</pre>
+        <h4>Request Response</h4>
+        <p>Response 200 (application/json)</p>
+        <pre>
+    [
+        {
+            "access": "eyJhbGc...." 
+        }
+    ]
+        </pre>
+    </section>
+    <p>
+        Another endpoint was created for the user himself only. See <a href="{% url 'contributor_doc' %}">here</a> in the first section.
+    </p>
+{% endblock content %}

@@ -20,6 +20,15 @@ from django.urls import path, include
 from rest_framework import routers
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from documentation.views import (
+    introduction,
+    about_authentication,
+    about_project,
+    about_contributor,
+    about_issue,
+    about_comment,
+)
+
 from support.views import (
     ProjectViewset,
     RegisterView,
@@ -46,4 +55,11 @@ urlpatterns = [
     path("api/", include(router.urls)),
     # user endpoint
     path("api/register/", RegisterView.as_view()),
+    # documentation
+    path("", introduction, name="introduction"),
+    path("authentication-doc/", about_authentication, name="authentication_doc"),
+    path("project-doc/", about_project, name="project_doc"),
+    path("contributor-doc/", about_contributor, name="contributor_doc"),
+    path("issue-doc/", about_issue, name="issue_doc"),
+    path("comment-doc/", about_comment, name="comment_doc"),
 ]

@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>Project</h1>
+    <ul>
+        <li>
+            <a href="#rules">Rules</a>
+        </li>
+        <li>
+            <a href="#create-project">Create a new project</a>
+        </li>
+        <li>
+            <a href="#update-project">Update a project</a>
+        </li>
+        <li>
+            <a href="#update-partial-project">Update a part of a project</a>
+        </li>
+        <li>
+            <a href="#delete-project">Delete a project</a>
+        </li>
+    </ul>
+    <section id="rules">
+        <h2>Rules</h2>
+        <p>
+            To access the Softdesk API, you must be connected, except for the <a href="{% url 'authentication_doc' %}">registration endpoint</a>.
+            <br>
+            However, being an authenticated user is not enough to access project data.
+            <br>
+            If you create a project, you become both the author and a contributor.
+            <br>
+            Only contributors of a project have access to GET, POST, PUT, or PATCH operations, and can also DELETE it. However, you need to be the author to add new contributors.
+            <br>
+            After understanding this, you can proceed to learn how to create a new project.
+            <br>
+        </p>
+    </section>
+    <section id="get-project">
+        <h2>Get a Project [GET]</h2>
+        <h3>Request Parameters</h3>
+        <p>
+            To retrieve a project, you can perform a simple GET request on this endpoint: <a href="http://127.0.0.1:8000/api/project/">http://127.0.0.1:8000/api/project/</a>.
+        </p>
+        <p>
+            Similar to a response with status 200, you will receive all projects to which you are a contributor. However, you can also apply filtering based on the application name.
+        </p>
+        <p>
+            - <code>application_name</code>: Desired application name.
+        </p>
+        <p>Ensure to provide your access token.</p>
+    </section>
+    <section id="create-project">
+        <h2>Create a new project [POST]</h2>
+        <h3>Request Parameters</h3>
+        <p>Request parameters are to be filled in as form-data in the body of the request.</p>
+        <p>
+            - <code>application_name</code>: User's desired application name.
+        </p>
+        <p>
+            - <code>type</code>: choice between: back-end, front-end, iOS or Android.
+        </p>
+        <p>
+            - <code>description</code>: A description of the application.
+        </p>
+        <h3>Response 200 (application/json)</h3>
+        <pre>
+            [
+                {
+                    "id": id-number,
+                    "description": "A project on web about reviews of books.",
+                    "type": "back-end",
+                    "author_username": author username,
+                    "created_time": created time, in time delta,
+                    "issues": [],
+                    "comments": []
+                }
+            ]
+        </pre>
+        <h3>Response 400 (application/json)</h3>
+        <pre>
+            [
+                {
+                    "application_name": [
+                        "Application name cannot be empty."
+                    ],
+                    "description": [
+                        "Description cannot be empty."
+                    ],
+                    "type": [
+                        "\"\" is not a valid choice."
+                    ]
+                }
+            ]
+        </pre>
+        <h3>Response 401 (application/json)</h3>
+        <pre>
+            [
+                {
+                    "detail": "Given token not valid for any token type",
+                    "code": "token_not_valid",
+                    "messages": [
+                        {
+                            "token_class": "AccessToken",
+                            "token_type": "access",
+                            "message": "Token is invalid or expired"
+                        }
+                    ]
+                }
+            ]
+        </pre>
+    </section>
+    <section id="update-project">
+        <h2>Update all data in project [PUT]</h2>
+        <h3>Select object</h3>
+        <h3>Select Object</h3>
+        <p>
+            To select an object, use the following endpoint: <code>http://127.0.0.1:8000/api/project/replace_by_your_project_id/</code>
+        </p>
+        <h3>Request Parameters</h3>
+        <p>
+            Same as <a href="#create-project">previous part.</a>
+        </p>
+        <p>
+            - <code>application_name</code>: User's desired application name.
+        </p>
+        <p>
+            - <code>type</code>: choice between: back-end, front-end, iOS or Android.
+        </p>
+        <p>
+            - <code>description</code>: A description of the application.
+        </p>
+        <p>So, the response is also the same.</p>
+        <h3>Response 401</h3>
+        <pre>
+            [
+                {
+                    "detail": "Not found."
+                }
+            ]
+        </pre>
+    </section>
+    <section id="update-partial-project">
+        <h2>Update a part of Project [PATCH]</h2>
+        <h3>Request Parameters</h3>
+        <p>
+            Same as <a href="#update-project">the previous part, except here you can choose between these fields. The others will remain the same as before.</a>
+        </p>
+        <p>
+            - <code>application_name</code>: User's desired application name.
+        </p>
+        <p>
+            - <code>type</code>: choice between: back-end, front-end, iOS or Android.
+        </p>
+        <p>
+            - <code>description</code>: A description of the application.
+        </p>
+    </section>
+    <section id="delete-project">
+        <h2>Delete a Project [DELETE]</h2>
+        <p>No need to fill in any fields; you can delete a project using the endpoint that contains the project ID.</p>
+        <h3>Request 204</h3>
+        <p>
+            If your request is successful, you will receive a 204 response, confirming that the project has been deleted with an empty response.
+        </p>
+        <p>Be careful, as deleting a project will also remove all contributors, issues, and comments associated with it.</p>
+    </section>
+    <p>
+        See how you can <a href="{% url 'contributor_doc' %}">add new contributors</a>
+    </p>
+{% endblock content %}

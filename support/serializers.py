@@ -1,11 +1,11 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
+from django.contrib.auth import password_validation
 
 from support.models import Project, Issue, Comment, User, Contributor
 
 USER = get_user_model()
-PASSWORD_RE = r"^[A-Za-z0-9]{6,}[0-9!@#$%^&*()-_+=<>?]{,2}$"
 USERNAME_TYPE = r"^[A-Za-z0-9]{1,}$"
 APPLICATION_TYPE = r"^[A-Za-z0-9]{1,}$"
 
@@ -70,7 +70,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         return serializer.data
 
     def get_comments(self, instance):
-        queryset = instance.issues.all()
+        queryset = instance.comments.all()
         serializer = CommentSerializer(queryset, many=True)
         return serializer.data
 
@@ -80,8 +80,8 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 class IssueSerializer(serializers.ModelSerializer):
     def validate_project(self, value):
-        if not Project.objects.filter(id=value).exists():
-            raise serializers.ValidationError("This application name not exists.")
+        if not Project.objects.filter(id=value.id).exists():
+            raise serializers.ValidationError("This project not exists.")
         if not Contributor.objects.filter(
             user=self.context["request"].user, project=value
         ).exists():
@@ -90,13 +90,14 @@ class IssueSerializer(serializers.ModelSerializer):
             )
         return value
 
-    def validate_attribution(self, value):
-        project = self.validated_data.get("project")
-        if not Contributor.objects.filter(user=value, project=project).exists():
+    def validate(self, data):
+        project = data.get("project")
+        user = data.get("attribution")
+        if not Contributor.objects.filter(user=user, project=project).exists():
             raise serializers.ValidationError(
-                "This user is not a contributor of project."
+                "This user is not a contributor of the project."
             )
-        return value
+        return data
 
     def create(self, validated_data):
         validated_data["author"] = self.context["request"].user
@@ -120,8 +121,8 @@ class IssueSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     def validate_project(self, value):
-        if not Project.objects.filter(id=value).exists():
-            raise serializers.ValidationError("This application name not exists.")
+        if not Project.objects.filter(id=value.id).exists():
+            raise serializers.ValidationError("This project does not exist.")
         if not Contributor.objects.filter(
             user=self.context["request"].user, project=value
         ).exists():
@@ -130,16 +131,29 @@ class CommentSerializer(serializers.ModelSerializer):
             )
         return value
 
+    def validate_issue(self, value):
+        if not Issue.objects.filter(id=value.id).exists():
+            raise serializers.ValidationError("This issue does not exist.")
+        project = value.project
+        if not Contributor.objects.filter(
+            user=self.context["request"].user, project=project
+        ).exists():
+            raise serializers.ValidationError(
+                "You are not a contributor of the project related to this issue."
+            )
+        return value
+
     def create(self, validated_data):
         validated_data["author"] = self.context["request"].user
-        issue = super(IssueSerializer, self).create(validated_data)
-        return issue
+        comment = super(CommentSerializer, self).create(validated_data)
+        return comment
 
     class Meta:
         model = Comment
         fields = [
             "id",
             "project",
+            "issue",
             "description",
             "created_time",
         ]
@@ -158,27 +172,12 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     )
     password = serializers.CharField(
         write_only=True,
-        validators=[
-            RegexValidator(
-                regex=PASSWORD_RE,
-                message="The password must have least 8"
-                + " alphanumeric characters and"
-                + " end with a digit or a special character.",
-            )
-        ],
+        validators=[password_validation.validate_password],
         style={"input_type": "password"},
     )
 
     password_confirm = serializers.CharField(
         write_only=True,
-        validators=[
-            RegexValidator(
-                regex=PASSWORD_RE,
-                message="The password must have least 8"
-                + " alphanumeric characters and"
-                + " end with a digit or a special character.",
-            )
-        ],
         style={"input_type": "password"},
     )
 
@@ -201,7 +200,10 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
+        password_confirm = validated_data.pop("password_confirm", None)
         user = super(UserRegistrationSerializer, self).create(validated_data)
+        user.set_password(validated_data["password"])
+        user.save()
         return user
 
     class Meta:
@@ -223,21 +225,16 @@ class ContributorManagementSerializer(serializers.ModelSerializer):
     application_name = serializers.ReadOnlyField(source="project.application_name")
     contributors = ContributorSerializer(many=True, read_only=True)
 
-    def validate(self, data):
-        user = data["user"]
-        project = data["project"]
-        existing_contributor = Contributor.objects.filter(user=user, project=project)
-        if existing_contributor:
-            raise serializers.ValidationError(
-                "Contributor already exists for this user and project."
-            )
-        return data
-
     def create(self, validated_data):
         contributor = super(ContributorManagementSerializer, self).create(
             validated_data
         )
         return contributor
+
+    def delete(self, instance):
+        if instance.project.author == instance.user:
+            raise serializers.ValidationError("Cannot delete the author.")
+        instance.delete()
 
     class Meta:
         model = Contributor

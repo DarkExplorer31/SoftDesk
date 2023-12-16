@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Softdesk API Documentation</title>
+    </head>
+    <body>
+        <header>
+            <h1>Softdesk API Documentation</h1>
+        </header>
+        <nav>
+            <ul>
+                <li>
+                    <a href="{% url 'authentication_doc' %}">About Authentication</a>
+                </li>
+                <li>
+                    <a href="{% url 'project_doc' %}">About Project</a>
+                </li>
+                <li>
+                    <a href="{% url 'contributor_doc' %}">About Contributor</a>
+                </li>
+                <li>
+                    <a href="{% url 'issue_doc' %}">About Issue</a>
+                </li>
+                <li>
+                    <a href="{% url 'comment_doc' %}">About Comment</a>
+                </li>
+            </ul>
+        </nav>
+        <main>
+            {% block content %}
+            {% endblock content %}
+        </main>
+        <footer>
+            <p>Softdesk API documentation</p>
+        </footer>
+    </body>
+</html>

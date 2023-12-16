@@ -2,7 +2,6 @@ from rest_framework import permissions
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import CreateAPIView
-from rest_framework.exceptions import MethodNotAllowed
 from django.contrib.auth import get_user_model
 
 from support.models import Project, Issue, Comment, Contributor, User
@@ -23,9 +22,6 @@ class ProjectViewset(ModelViewSet):
 
     def get_queryset(self):
         queryset = Project.objects.filter(contributors__user=self.request.user)
-        application_name = self.request.GET.get("application_name")
-        if application_name:
-            queryset = queryset.filter(application_name=application_name)
         return queryset
 
 
@@ -34,32 +30,18 @@ class IssueViewset(ModelViewSet):
     permission_classes = [IsContributor, IsAuthenticated]
 
     def get_queryset(self):
-        queryset = Issue.objects.all()
+        project_id = self.request.GET.get("project_id")
         priority = self.request.GET.get("priority")
+        queryset = []
+        issue_id = self.kwargs.get("pk")
+        issues = Issue.objects.all()
+        if issue_id:
+            return issues.filter(id=issue_id)
+        if project_id:
+            queryset = issues.filter(project=project_id)
         if priority:
-            queryset = queryset.filter(priority=priority)
+            queryset = issues.filter(priority=priority)
         return queryset
-
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if request.user.id == instance.author.id:
-            return super().destroy(request, *args, **kwargs)
-        else:
-            raise MethodNotAllowed("DELETE")
-
-    def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if request.user.id == instance.author.id:
-            return super().update(request, *args, **kwargs)
-        else:
-            raise MethodNotAllowed("PUT")
-
-    def partial_update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if request.user.id == instance.author.id:
-            return super().partial_update(request, *args, **kwargs)
-        else:
-            raise MethodNotAllowed("PATCH")
 
 
 class CommentViewset(ModelViewSet):
@@ -67,10 +49,15 @@ class CommentViewset(ModelViewSet):
     permission_classes = [IsContributor, IsAuthenticated]
 
     def get_queryset(self):
-        queryset = Comment.objects.all()
-        issue = self.request.GET.get("issue")
-        if issue:
-            queryset = queryset.filter(issue=issue)
+        project_id = self.request.GET.get("project_id")
+        issue_id = self.request.GET.get("issue_id")
+        queryset = []
+        comment_id = self.kwargs.get("pk")
+        comments = Comment.objects.all()
+        if comment_id:
+            return comments.filter(id=comment_id)
+        if project_id and issue_id:
+            queryset = comments.filter(project=project_id, issue=issue_id)
         return queryset
 
 

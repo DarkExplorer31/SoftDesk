@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>Contributor</h1>
+    <ul>
+        <li>
+            <a href="#user-data">User Data Consultation</a>
+        </li>
+        <li>
+            <a href="#get-contributors">Get Contributors</a>
+        </li>
+        <li>
+            <a href="#unauthorized-request">Unauthorized Request</a>
+        </li>
+        <li>
+            <a href="#delete-contributor">Delete a Contributor</a>
+        </li>
+    </ul>
+    <p>
+        Before reading this, pay attention to having read all the previous parts, like
+        <a href="{% url 'project_doc' %}">project documentation</a> or
+        <a href="{% url 'authentication_doc' %}">authentication documentation</a>.
+    </p>
+    <p>
+        This section is intended for project authors and individual users.
+        <br>
+        Authors have the ability to add new contributors to a project, while users can modify their own information.
+    </p>
+    <section id="user-data">
+        <h2>User Data Consultation</h2>
+        <p>
+            The endpoint: <a href="http://127.0.0.1:8000/api/user/">http://127.0.0.1:8000/api/user/</a>
+        </p>
+        <h3>Rules</h3>
+        <p>This endpoint serves a single purpose: to view user IDs.</p>
+        <p>On this endpoint, only the GET method is allowed; POST, PUT, PATCH, or DELETE methods are not supported.</p>
+        <h3>Response 200</h3>
+        <pre>
+            [
+                {
+                    "count": 2,
+                    "next": null,
+                    "previous": null,
+                    "results": [
+                        {
+                            "id": id,
+                            "username": username,
+                            "email": email,
+                            "age": age,
+                            "can_be_contacted": "Yes",
+                            "can_data_be_shared": "Yes"
+                        },
+                        {
+                            "id": id,
+                            "username": username,
+                            "email": email,
+                            "age": age,
+                            "can_be_contacted": "Yes",
+                            "can_data_be_shared": "Yes"
+                        }
+                    ]
+                }
+            ]
+        </pre>
+        <h3>Response 405</h3>
+        <pre>
+            [
+                {
+                    "detail": "Method \"PATCH\" not allowed."
+                }
+            ]
+        </pre>
+        <p>
+            If you attempt a request with a different method, a 405 error will be returned. However, you can select a specific user ID.
+        </p>
+        <h3>Response 200 with specified ID</h3>
+        <p>
+            The endpoint: <a href="http://127.0.0.1:8000/api/user/user_id/">http://127.0.0.1:8000/api/user/user_id/</a>
+        </p>
+        <pre>
+            [
+                {
+                    "id": id,
+                    "username": username,
+                    "email": email,
+                    "age": age,
+                    "can_be_contacted": "Yes",
+                    "can_data_be_shared": "Yes"
+                }
+            ]
+        </pre>
+    </section>
+    <section id="get-contributors">
+        <h2>Get Contributors [GET]</h2>
+        <h3>Rules</h3>
+        <p>
+            If you make a GET request to the contributor endpoint at <a href="http://127.0.0.1:8000/api/project/">http://127.0.0.1:8000/api/project/</a>, you will only see projects to which you have contributed.
+        </p>
+        <h3>Request Parameters</h3>
+        <p>
+            You can use the endpoint: <a href="http://127.0.0.1:8000/api/project/">http://127.0.0.1:8000/api/project/</a> or specify a project ID like
+            <br>
+            <a href="http://127.0.0.1:8000/api/project/id/">http://127.0.0.1:8000/api/project/id/</a>
+        </p>
+        <p>Be careful, it's a Contributor object, linked to a user and a project, but not...</p>
+        <h3>Response 200</h3>
+        <pre>
+            [
+                {
+                    "count": 1,
+                    "next": null,
+                    "previous": null,
+                    "results": [
+                        {
+                            "id": contributor_id,
+                            "user": user_id,
+                            "username": username,
+                            "project": project_id,
+                            "application_name": app_name,
+                            "created_time": "2023-12-..."
+                        }
+                    ]
+                }
+            ]
+        </pre>
+        <h3>Response 200 with id attribute</h3>
+        <pre>
+            [
+                {
+                    "id": contributor_id,
+                    "user": user_id,
+                    "username": username,
+                    "project": project_id,
+                    "application_name": app_name,
+                    "created_time": "2023-12-..."
+                }
+            ]
+        </pre>
+    </section>
+    <section id="unauthorized-request">
+        <h2>Unauthorized Request</h2>
+        <p>Some request methods are unauthorized because they do not make sense. These include:</p>
+        <ul>
+            <li>The [PUT] method</li>
+            <li>The [PATCH] method</li>
+        </ul>
+    </section>
+    <section id="delete-contributor">
+        <h2>Delete a Contributor [DELETE]</h2>
+        <h3>Rules</h3>
+        <p>
+            To delete a contributor, make a DELETE request. Only project authors are allowed to perform this action. If you are not an author, a 403 Response will be returned.
+            <br>
+            Specify the contributor's ID in the request URL: <a href="http://127.0.0.1:8000/api/project/id/">http://127.0.0.1:8000/api/project/id/</a>
+        </p>
+        <h3>Response 403</h3>
+        <pre>
+            [
+                {
+                    "detail": "You do not have permission to perform this action."
+                }
+            ]
+        </pre>
+        <h3>Exception</h3>
+        <p>
+            An author of a project is automatically a contributor and cannot delete themselves on this endpoint of a project. Only an admin can perform this action.
+        </p>
+    </section>
+{% endblock content %}

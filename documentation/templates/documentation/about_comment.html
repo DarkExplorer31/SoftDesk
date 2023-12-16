@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>Comment</h1>
+    <ul>
+        <li>
+            <a href="#get-comment">Get a Comment</a>
+        </li>
+        <li>
+            <a href="#create-comment">Create a Comment</a>
+        </li>
+        <li>
+            <a href="#delete-comment">Modify or Delete a Comment</a>
+        </li>
+    </ul>
+    <section id="get-comment">
+        <h2>Get a comment [GET]</h2>
+        <p>
+            To get a comment, you need to be a Contributor of a project, use this endpoint <a href="http://127.0.0.1:8000/api/comment/">http://127.0.0.1:8000/api/comment/</a>.
+            <br>
+            However, you need to enter a project id and an issue id to see its comment. <code>http://127.0.0.1:8000/api/comment/?project_id=id?issue_id=id</code>.
+        </p>
+        <h2>Response 200 without specify issue</h2>
+        <pre>
+            [
+                {
+                    "count": 0,
+                    "next": null,
+                    "previous": null,
+                    "results": []
+                }
+            ]
+        </pre>
+        <h2>Response 200 with specify project</h2>
+        <pre>
+            [
+                {
+                    "id": "5c5be1b1-43fa-434d-9923-b5a743682580",
+                    "project": project_id,
+                    "issue": issue_id,
+                    "description": "En cour",
+                    "created_time": "2023-1...Z"
+                }
+            ]
+        </pre>
+    </section>
+    <section id="create-comment">
+        <h2>Create a comment</h2>
+        <p>
+            Be careful, only contributors can create, modify, or delete a comment. If you are not a contributor, see <a href="{% url 'contributor_doc' %}">this part</a>.
+        </p>
+        <h2>Request Parameters [POST]</h2>
+        <p>All these parameters are to filled in a form-data in body of request.</p>
+        <p>
+            - <code>project_id</code>: User's desired project.
+        </p>
+        <p>
+            - <code>issue_id</code>: Name of comment.
+        </p>
+        <p>
+            - <code>description</code>: Description of the comment.
+        </p>
+        <h2>Response 200</h2>
+        <pre>
+            [
+                {
+                    "id": "5c5be1...",
+                    "project": project_id,
+                    "issue": issue_id,
+                    "description": "En cour",
+                    "created_time": "2023-1..."
+                }
+            ]
+        </pre>
+        <h2>Response 400</h2>
+        <pre>
+            [
+                {
+                    "non_field_errors": [
+                    "This user is not a contributor of the project."
+    ]
+                }
+            ]
+        </pre>
+    </section>
+    <section id="delete-comment">
+        <h2>Delete a comment [PUT][DELETE]</h2>
+        <p>
+            To delete a comment, you need to specify the comment's ID in the endpoint; no need to add any form-data in the body.
+            <br>
+            Example: http://127.0.0.1:8000/api/comment/uuid_id/
+        </p>
+    </section>
+{% endblock content %}

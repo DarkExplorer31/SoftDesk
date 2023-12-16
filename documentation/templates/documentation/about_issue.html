@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>Issue</h1>
+    <ul>
+        <li>
+            <a href="#get-issue">Get an Issue</a>
+        </li>
+        <li>
+            <a href="#create-issue">Create an Issue</a>
+        </li>
+        <li>
+            <a href="#delete-issue">Modify or Delete an Issue</a>
+        </li>
+    </ul>
+    <section id="get-issue">
+        <h2>Get an Issue [GET]</h2>
+        <p>
+            To get an Issue, you need to be a Contributor of a project, use this endpoint <a href="http://127.0.0.1:8000/api/issue/">http://127.0.0.1:8000/api/issue/</a>.
+            <br>
+            However, you need to enter a project id to see its issue. <code>http://127.0.0.1:8000/api/issue/?project_id=id</code>.
+            <br>
+            You can also filter by issue's priority.  <code>http://127.0.0.1:8000/api/issue/?priority=priority</code>.
+        </p>
+        <h2>Response 200 without specify project</h2>
+        <pre>
+            [
+                {
+                    "count": 0,
+                    "next": null,
+                    "previous": null,
+                    "results": []
+                }
+            ]
+        </pre>
+        <h2>Response 200 with specify project</h2>
+        <pre>
+            [
+                {
+                    "count": 1,
+                    "next": null,
+                    "previous": null,
+                    "results": [
+                        {
+                            "id": id,
+                            "project": project_id,
+                            "issue_name": issue_name,
+                            "status": "To Do",
+                            "description": "to do",
+                            "attribution": user_id,
+                            "priority": "MEDIUM",
+                            "tag": "TASK",
+                            "created_time": "2023-1..."
+                        }
+                    ]
+                }
+            ]
+        </pre>
+    </section>
+    <section id="create-issue">
+        <h2>Create an Issue</h2>
+        <p>
+            Be careful, only contributors can create, modify, or delete an issue. If you are not a contributor, see <a href="{% url 'contributor_doc' %}">this part</a>.
+        </p>
+        <h2>Request Parameters [POST]</h2>
+        <p>All these parameters are to filled in a form-data in body of request.</p>
+        <p>
+            - <code>project</code>: User's desired project.
+        </p>
+        <p>
+            - <code>issue_name</code>: Name of issue.
+        </p>
+        <p>
+            - <code>status</code>: Choice between: To Do, In Progress, or Finished.
+        </p>
+        <p>
+            - <code>description</code>: description of the issue.
+        </p>
+        <p>
+            - <code>attribution</code>: Choice between contributor users.
+        </p>
+        <p>
+            - <code>priority</code>: Issue's priority. Choice between: LOW, MEDIUM, or HIGH.
+        </p>
+        <p>
+            - <code>tag</code>: Choice between: BUG, FEATURE, or TASK.
+        </p>
+        <h2>Response 200</h2>
+        <pre>
+            [
+                {
+                    "id": id,
+                    "project": project_id,
+                    "issue_name": issue_name,
+                    "status": "To Do",
+                    "description": "to do",
+                    "attribution": user_id,
+                    "priority": "MEDIUM",
+                    "tag": "TASK",
+                    "created_time": "2023-1..."
+                }
+            ]
+        </pre>
+        <h2>Response 400</h2>
+        <pre>
+            [
+                {
+                    "non_field_errors": [
+                    "This user is not a contributor of the project."
+    ]
+                }
+            ]
+        </pre>
+    </section>
+    <section id="delete-issue">
+        <h2>Modify or Delete an Issue [PUT][DELETE]</h2>
+        <p>
+            To modify or delete an issue, you need to specify the issue's ID in the endpoint; no need to add any form-data in the body.
+            <br>
+            Example: http://127.0.0.1:8000/api/issue/id/
+        </p>
+    </section>
+{% endblock content %}
