@@ -3,6 +3,10 @@
     <h1>Comment</h1>
     <ul>
         <li>
+            <a href="https://documenter.getpostman.com/view/27986182/2s9Ykn92VE"
+               target="about_blank">Postman Documentation</a>
+        </li>
+        <li>
             <a href="#get-comment">Get a Comment</a>
         </li>
         <li>
@@ -83,9 +87,9 @@
         </pre>
     </section>
     <section id="delete-comment">
-        <h2>Delete a comment [PUT][DELETE]</h2>
+        <h2>Delete or update a comment [PUT][DELETE]</h2>
         <p>
-            To delete a comment, you need to specify the comment's ID in the endpoint; no need to add any form-data in the body.
+            To delete or update a comment, you need to be the author and specify the comment's ID in the endpoint; no need to add any form-data in the body.
             <br>
             Example: http://127.0.0.1:8000/api/comment/uuid_id/
         </p>

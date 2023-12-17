@@ -160,6 +160,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
+    age = serializers.IntegerField(required=True)
     username = serializers.CharField(
         write_only=True,
         validators=[
@@ -180,6 +181,15 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         write_only=True,
         style={"input_type": "password"},
     )
+
+    def validate_age(self, value):
+        if value < 15:
+            raise serializers.ValidationError(
+                "You need to be at least 15 years old to register."
+            )
+        if value > 120:
+            raise serializers.ValidationError("Invalid age.")
+        return value
 
     def validate_username(self, value):
         if User.objects.filter(username=value).exists():
