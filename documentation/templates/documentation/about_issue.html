@@ -19,46 +19,30 @@
     <section id="get-issue">
         <h2>Get an Issue [GET]</h2>
         <p>
-            To get an Issue, you need to be a Contributor of a project, use this endpoint <a href="http://127.0.0.1:8000/api/issue/">http://127.0.0.1:8000/api/issue/</a>.
-            <br>
-            However, you need to enter a project id to see its issue. <code>http://127.0.0.1:8000/api/issue/?project_id=id</code>.
-            <br>
-            You can also filter by issue's priority.  <code>http://127.0.0.1:8000/api/issue/?priority=priority</code>.
+            To get an Issue, you need to be a Contributor of a project. Use this endpoint <a href="http://127.0.0.1:8000/api/issue/">http://127.0.0.1:8000/api/issue/</a>.
+            However, you can filter this request by priority.
         </p>
-        <h2>Response 200 without specify project</h2>
+        <h2>Response 200</h2>
         <pre>
-            [
-                {
-                    "count": 0,
-                    "next": null,
-                    "previous": null,
-                    "results": []
-                }
-            ]
-        </pre>
-        <h2>Response 200 with specify project</h2>
-        <pre>
-            [
-                {
-                    "count": 1,
-                    "next": null,
-                    "previous": null,
-                    "results": [
-                        {
-                            "id": id,
-                            "project": project_id,
-                            "issue_name": issue_name,
-                            "status": "To Do",
-                            "description": "to do",
-                            "attribution": user_id,
-                            "priority": "MEDIUM",
-                            "tag": "TASK",
-                            "created_time": "2023-1..."
-                        }
-                    ]
-                }
-            ]
-        </pre>
+            {
+                "count": 1,
+                "next": null,
+                "previous": null,
+                "results": [
+                    {
+                        "id": issue_id,
+                        "project": project_id,
+                        "issue_name": issue_name,
+                        "status": "To Do",
+                        "description": "Description of the issue",
+                        "attribution": id_of_user_need_to_fix_it,
+                        "priority": "LOW",
+                        "tag": "BUG",
+                        "created_time": datetime
+                    }
+                ]
+            }
+</pre>
     </section>
     <section id="create-issue">
         <h2>Create an Issue</h2>

@@ -19,32 +19,25 @@
     <section id="get-comment">
         <h2>Get a comment [GET]</h2>
         <p>
-            To get a comment, you need to be a Contributor of a project, use this endpoint <a href="http://127.0.0.1:8000/api/comment/">http://127.0.0.1:8000/api/comment/</a>.
+            To get a comment, you need to be a Contributor of a project. Use this endpoint <a href="http://127.0.0.1:8000/api/comment/">http://127.0.0.1:8000/api/comment/</a>.
             <br>
-            However, you need to enter a project id and an issue id to see its comment. <code>http://127.0.0.1:8000/api/comment/?project_id=id?issue_id=id</code>.
         </p>
         <h2>Response 200 without specify issue</h2>
         <pre>
-            [
-                {
-                    "count": 0,
-                    "next": null,
-                    "previous": null,
-                    "results": []
-                }
-            ]
-        </pre>
-        <h2>Response 200 with specify project</h2>
-        <pre>
-            [
-                {
-                    "id": "5c5be1b1-43fa-434d-9923-b5a743682580",
-                    "project": project_id,
-                    "issue": issue_id,
-                    "description": "En cour",
-                    "created_time": "2023-1...Z"
-                }
-            ]
+            {
+                "count": 1,
+                "next": null,
+                "previous": null,
+                "results": [
+                    {
+                        "id": "0408a650-2404-409c-baf6-9d134c80f94c",
+                        "project": project_id,
+                        "issue": issue_id,
+                        "description": "I'm doing",
+                        "created_time": datetime
+                    }
+                ]
+            }
         </pre>
     </section>
     <section id="create-comment">

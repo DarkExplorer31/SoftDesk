@@ -30,17 +30,10 @@ class IssueViewset(ModelViewSet):
     permission_classes = [IsContributorOrAuthor, IsAuthenticated]
 
     def get_queryset(self):
-        project_id = self.request.GET.get("project_id")
         priority = self.request.GET.get("priority")
-        queryset = []
-        issue_id = self.kwargs.get("pk")
-        issues = Issue.objects.all()
-        if issue_id:
-            return issues.filter(id=issue_id)
-        if project_id:
-            queryset = issues.filter(project=project_id)
+        queryset = Issue.objects.filter(project__contributors__user=self.request.user)
         if priority:
-            queryset = issues.filter(priority=priority)
+            queryset = queryset.filter(priority=priority)
         return queryset
 
 
@@ -49,15 +42,7 @@ class CommentViewset(ModelViewSet):
     permission_classes = [IsContributorOrAuthor, IsAuthenticated]
 
     def get_queryset(self):
-        project_id = self.request.GET.get("project_id")
-        issue_id = self.request.GET.get("issue_id")
-        queryset = []
-        comment_id = self.kwargs.get("pk")
-        comments = Comment.objects.all()
-        if comment_id:
-            return comments.filter(id=comment_id)
-        if project_id and issue_id:
-            queryset = comments.filter(project=project_id, issue=issue_id)
+        queryset = Comment.objects.filter(project__contributors__user=self.request.user)
         return queryset
 
 
