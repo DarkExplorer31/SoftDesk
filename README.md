@@ -5,7 +5,6 @@ A supporting API destined to help multiple platform developers.
 ## Table of Contents
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
-- [Documentation](#documentation)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -39,11 +38,6 @@ python manage.py migrate
 ```bash
 python manage.py runserver
 ```
-## Documentation
-The documentation was created using Apiary and is available in a file named "apiary.apib".
-If it is necessary to consult it, please visit the website at the following link "link"
-to view the definitive version of this documentation.
-[Back to table of content](#table-of-contents)
 
 ## Contributing
 If you'd like to contribute to this project, please follow these guidelines:
